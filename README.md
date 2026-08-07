@@ -70,7 +70,7 @@ abap_sql_prepare  SELECT a FROM t LIMIT 10
 
 **`LIMIT`, `DESC`/`ASC`, and dot-qualified fields**, refused with the ABAP form named. `p.vbeln` is not a typo the parser forgives, it is three tokens.
 
-**Where the literals are.** A parenthesis inside `'INGOT (AL)'` is data, and so is a double space. Both ABAP string forms and the comment form are understood, so a rewrite never changes what a statement asks for. This is the part a regex gets wrong quietly rather than loudly.
+**Where the literals are.** A parenthesis inside `'PUMP (SPARE)'` is data, and so is a double space. Both ABAP string forms and the comment form are understood, so a rewrite never changes what a statement asks for. This is the part a regex gets wrong quietly rather than loudly.
 
 ## Scope
 
