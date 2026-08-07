@@ -1,22 +1,53 @@
 {
-  "name": "@daslabhq/sap-abap-sql-mcp",
+  "name": "sap-abap-sql-mcp",
   "version": "0.1.0",
-  "description": "MCP server that checks and fixes ABAP Open SQL for SAP's ADT data-preview console. Runs locally, connects to nothing.",
-  "keywords": ["mcp", "modelcontextprotocol", "sap", "abap", "open-sql", "s4hana", "adt"],
+  "description": "Checks and fixes ABAP Open SQL for SAP's ADT data-preview console. Connects to nothing.",
+  "keywords": [
+    "mcp",
+    "modelcontextprotocol",
+    "model-context-protocol",
+    "sap",
+    "abap",
+    "abap-sql",
+    "open-sql",
+    "s4hana",
+    "sap-abap",
+    "adt",
+    "netweaver",
+    "ecc",
+    "sql",
+    "llm",
+    "ai-agents"
+  ],
   "license": "MIT",
   "homepage": "https://github.com/daslabhq/sap-abap-sql-mcp#readme",
-  "repository": { "type": "git", "url": "git+https://github.com/daslabhq/sap-abap-sql-mcp.git" },
-  "bugs": { "url": "https://github.com/daslabhq/sap-abap-sql-mcp/issues" },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/daslabhq/sap-abap-sql-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/daslabhq/sap-abap-sql-mcp/issues"
+  },
   "type": "module",
-  "bin": { "sap-abap-sql-mcp": "./dist/server.js" },
-  "files": ["dist", "README.md", "LICENSE", "server.json"],
+  "bin": {
+    "sap-abap-sql-mcp": "./dist/server.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "server.json"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "prepublishOnly": "bun run build"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.30.0",
-    "abap-sql": "file:../abap-sql"
+    "abap-sql": "^0.1.0"
   },
-  "devDependencies": { "typescript": "^5.6.0" }
+  "devDependencies": {
+    "typescript": "^5.6.0"
+  },
+  "author": "Daslab (https://daslab.run)"
 }
