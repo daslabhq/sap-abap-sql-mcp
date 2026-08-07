@@ -12,7 +12,7 @@ If you have pointed an LLM at an on-premise SAP system, you have seen these:
 
 Three errors, three apparent rules, one actual cause: **the parser wants a space on the inside of every parenthesis.** It even tells you in the third one. All three pass once spaced.
 
-Nothing in those messages says "add spaces", so a model guesses. In one recorded session the same malformed statement went out **ten times in a row**, varying only a literal. Across two sessions, 57 of 211 tool calls failed on dialect alone.
+Nothing in those messages says "add spaces", so a model guesses. In one recorded session the same malformed statement went out **ten times in a row**, varying only a literal. Across two sessions, 57 of 211 tool calls failed, most of them on dialect.
 
 This server knows the rules, so your agent does not have to rediscover them.
 
@@ -78,7 +78,7 @@ This prepares statements. It does not connect, authenticate, read data, or know 
 
 The dialect logic lives in [`abap-sql`](https://github.com/daslabhq/abap-sql) if you would rather call a library than run a server. Tokenizing is [abaplint](https://abaplint.org)'s lexer, which is the one correct ABAP tokenizer in TypeScript.
 
-Built by [Daslab](https://daslab.run). We work on agents that read on-premise business systems, which is how we ended up with a list of these. Connecting one from outside the network is its own problem, and there is a free write-up of what actually works: [connecting an on-premise S/4HANA over HTTP](https://daslab.run/docs/sap-s4hana/on-prem).
+Built by [Daslab](https://daslab.run). We connect agents to on-premise ERP systems. Connecting one from outside the network is its own problem, and there is a free write-up of what actually works: [connecting an on-premise S/4HANA over HTTP](https://daslab.run/docs/sap-s4hana/on-prem).
 
 ## License
 
