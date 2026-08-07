@@ -1,0 +1,22 @@
+{
+  "name": "@daslabhq/sap-abap-sql-mcp",
+  "version": "0.1.0",
+  "description": "MCP server that checks and fixes ABAP Open SQL for SAP's ADT data-preview console. Runs locally, connects to nothing.",
+  "keywords": ["mcp", "modelcontextprotocol", "sap", "abap", "open-sql", "s4hana", "adt"],
+  "license": "MIT",
+  "homepage": "https://github.com/daslabhq/sap-abap-sql-mcp#readme",
+  "repository": { "type": "git", "url": "git+https://github.com/daslabhq/sap-abap-sql-mcp.git" },
+  "bugs": { "url": "https://github.com/daslabhq/sap-abap-sql-mcp/issues" },
+  "type": "module",
+  "bin": { "sap-abap-sql-mcp": "./dist/server.js" },
+  "files": ["dist", "README.md", "LICENSE", "server.json"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "prepublishOnly": "bun run build"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "abap-sql": "file:../abap-sql"
+  },
+  "devDependencies": { "typescript": "^5.6.0" }
+}

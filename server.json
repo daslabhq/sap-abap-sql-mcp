@@ -1,0 +1,18 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-09-29/server.schema.json",
+  "name": "io.github.daslabhq/sap-abap-sql",
+  "description": "Write ABAP Open SQL that SAP's ADT data-preview console will accept. Checks the dialect, fixes what is mechanical, enforces the 255-character ceiling. Connects to nothing.",
+  "version": "0.1.0",
+  "repository": {
+    "url": "https://github.com/daslabhq/sap-abap-sql-mcp",
+    "source": "github"
+  },
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@daslabhq/sap-abap-sql-mcp",
+      "version": "0.1.0",
+      "transport": { "type": "stdio" }
+    }
+  ]
+}
