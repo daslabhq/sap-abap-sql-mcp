@@ -1,5 +1,8 @@
 # SAP ABAP SQL (MCP server)
 
+[![tests](https://github.com/daslabhq/sap-abap-sql-mcp/actions/workflows/test.yml/badge.svg)](https://github.com/daslabhq/sap-abap-sql-mcp/actions/workflows/test.yml)
+[![npm](https://img.shields.io/npm/v/sap-abap-sql-mcp)](https://www.npmjs.com/package/sap-abap-sql-mcp)
+
 Checks and fixes ABAP Open SQL before it reaches SAP's ADT data-preview console.
 
 If you have pointed an LLM at an on-premise SAP system, you have seen these:
