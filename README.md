@@ -117,6 +117,12 @@ The dialect logic lives in [`abap-sql`](https://github.com/daslabhq/abap-sql) if
 
 Built by [Daslab](https://daslab.run). We connect agents to on-premise ERP systems. Connecting one from outside the network is its own problem, and there is a free write-up of what actually works: [connecting an on-premise S/4HANA over HTTP](https://daslab.run/docs/sap-s4hana/on-prem).
 
+## Releasing
+
+`git tag v0.3.0 && git push --tags`. CI checks the tag against `package.json`, runs the tests, publishes to npm with provenance, builds the `.mcpb` bundle and attaches it to a GitHub release.
+
+Two steps stay manual because they need credentials CI does not hold: the MCP Registry (`mcp-publisher publish`) and Smithery (`smithery mcp publish`).
+
 ## License
 
 MIT

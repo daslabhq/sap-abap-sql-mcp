@@ -1,0 +1,59 @@
+name: release
+
+# Push a tag, get a release. `git tag v0.3.0 && git push --tags`.
+#
+# The tag is checked against package.json rather than trusted, because the
+# failure mode otherwise is silent: a mistyped tag publishes the wrong version
+# to npm, and npm versions cannot be replaced.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write      # create the GitHub release, attach the bundle
+  id-token: write      # npm provenance: attest that this build came from here
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+
+      - run: bun install --frozen-lockfile
+
+      - name: Tag must match package.json
+        run: |
+          tagged="${GITHUB_REF_NAME#v}"
+          declared=$(node -p "require('./package.json').version")
+          if [ "$tagged" != "$declared" ]; then
+            echo "Tag $GITHUB_REF_NAME says $tagged, package.json says $declared." >&2
+            exit 1
+          fi
+
+      - run: bunx tsc -p tsconfig.json
+      - run: node test/adt.test.mjs
+      - run: node test/smoke.mjs
+
+      # --provenance publishes a signed attestation to the public transparency
+      # log tying this tarball to this commit and this workflow. It is free
+      # here and cannot be produced from a laptop, which is the point: it says
+      # where the artifact came from, not merely who uploaded it.
+      - name: Publish to npm
+        run: npm publish --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Build the .mcpb bundle
+        run: bash scripts/build-mcpb.sh
+
+      - name: GitHub release with the bundle attached
+        run: gh release create "$GITHUB_REF_NAME" sap-abap-sql.mcpb --title "$GITHUB_REF_NAME" --generate-notes
+        env:
+          GH_TOKEN: ${{ github.token }}
