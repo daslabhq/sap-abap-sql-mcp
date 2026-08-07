@@ -11,7 +11,7 @@
  */
 
 const SQL_PATH = "/sap/bc/adt/datapreview/freestyle";
-const CSRF_PATH = "/sap/bc/adt/compatibility/graph";
+const CSRF_PATH = "/sap/bc/adt/discovery";
 
 /** The console's own ceiling. Raising the request does not raise the cap. */
 export const MAX_ROWS = 5000;
@@ -20,6 +20,8 @@ export interface AdtConfig {
   url: string;
   user: string;
   password: string;
+  /** Sent on every request. For a system behind a proxy that gates on one. */
+  headers?: Record<string, string>;
 }
 
 export interface QueryResult {
@@ -33,12 +35,35 @@ export interface QueryResult {
   durationMs: number;
 }
 
-/** Reads config from the environment, or explains what is missing. */
+/** Reads config from the environment, or returns null when it is incomplete. */
 export function configFromEnv(env: Record<string, string | undefined>): AdtConfig | null {
   const url = env.SAP_URL?.replace(/\/+$/, "");
   const user = env.SAP_USER;
   const password = env.SAP_PASSWORD;
-  return url && user && password ? { url, user, password } : null;
+  if (!url || !user || !password) return null;
+  return { url, user, password, headers: parseHeaders(env.SAP_HEADERS) };
+}
+
+/**
+ * `Name: value` per line, the way you would write them by hand.
+ *
+ * An on-premise system is rarely reached directly. It sits behind a tunnel or
+ * a proxy, and those commonly gate on a header of their own: without it every
+ * request is 403 before SAP ever sees it, which reads exactly like "ADT is
+ * switched off" and is not.
+ */
+export function parseHeaders(raw: string | undefined): Record<string, string> | undefined {
+  const headers: Record<string, string> = {};
+  for (const line of (raw ?? "").split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+    const colon = trimmed.indexOf(":");
+    if (colon <= 0) continue;
+    const name = trimmed.slice(0, colon).trim();
+    const value = trimmed.slice(colon + 1).trim();
+    if (name && value) headers[name] = value;
+  }
+  return Object.keys(headers).length > 0 ? headers : undefined;
 }
 
 export async function query(config: AdtConfig, sql: string, maxRows: number): Promise<QueryResult> {
@@ -73,14 +98,14 @@ export async function query(config: AdtConfig, sql: string, maxRows: number): Pr
 // ── session ──────────────────────────────────────────────────────────
 
 /**
- * The console needs a CSRF token and the cookies issued alongside it. Any
+ * placeholder
  * cheap GET will mint both; this uses a compatibility endpoint that exists on
  * every system and returns almost nothing.
  */
 async function openSession(config: AdtConfig): Promise<{ headers: Record<string, string> }> {
   const auth = `Basic ${Buffer.from(`${config.user}:${config.password}`).toString("base64")}`;
   const res = await fetch(`${config.url}${CSRF_PATH}`, {
-    headers: { Authorization: auth, "x-csrf-token": "fetch" },
+    headers: { ...(config.headers ?? {}), Authorization: auth, "x-csrf-token": "fetch" },
   });
 
   if (res.status === 401) {
@@ -93,7 +118,9 @@ async function openSession(config: AdtConfig): Promise<{ headers: Record<string,
   if (!token) {
     throw new Error(
       `No CSRF token from ${config.url} (HTTP ${res.status}). ` +
-        "Usually means /sap/bc/adt is not active in SICF, or a proxy is enforcing SSO on the path.",
+        "Usually one of: /sap/bc/adt is not active in SICF, a proxy in front of the system is " +
+        "rejecting the request before SAP sees it (set SAP_HEADERS if it gates on a header), " +
+        "or the user's role does not cover the discovery path.",
     );
   }
 
@@ -101,7 +128,14 @@ async function openSession(config: AdtConfig): Promise<{ headers: Record<string,
     .map((c) => c.split(";")[0])
     .join("; ");
 
-  return { headers: { Authorization: auth, "x-csrf-token": token, ...(cookie ? { Cookie: cookie } : {}) } };
+  return {
+    headers: {
+      ...(config.headers ?? {}),
+      Authorization: auth,
+      "x-csrf-token": token,
+      ...(cookie ? { Cookie: cookie } : {}),
+    },
+  };
 }
 
 // ── parsing ──────────────────────────────────────────────────────────

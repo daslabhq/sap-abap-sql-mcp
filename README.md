@@ -42,12 +42,15 @@ The fourth, `abap_sql_query`, runs a statement against a system you configure an
       "env": {
         "SAP_URL": "https://your-system:44300",
         "SAP_USER": "...",
-        "SAP_PASSWORD": "..."
+        "SAP_PASSWORD": "...",
+        "SAP_HEADERS": "X-Your-Proxy-Token: ..."
       }
     }
   }
 }
 ```
+
+`SAP_HEADERS` is optional, one `Name: value` per line. On-premise systems are rarely reached directly: they sit behind a tunnel or proxy, and if that gates on a header of its own then every request is rejected before SAP ever sees it. The symptom is a 403 that reads exactly like "ADT is switched off", and is not.
 
 Read-only by construction: the data-preview console cannot write, so there is no write path to misuse.
 
