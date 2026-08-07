@@ -21,4 +21,5 @@ jobs:
       - run: bunx tsc -p tsconfig.json
       # Start the built server and talk to it over MCP. What breaks here is
       # the wiring rather than the dialect logic, which abap-sql tests itself.
+      - run: node test/adt.test.mjs
       - run: node test/smoke.mjs

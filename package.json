@@ -1,6 +1,6 @@
 {
   "name": "sap-abap-sql-mcp",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Checks and fixes ABAP Open SQL for SAP's ADT data-preview console. Connects to nothing.",
   "keywords": [
     "mcp",
@@ -41,7 +41,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "prepublishOnly": "bun run build",
-    "test": "node test/smoke.mjs",
+    "test": "node test/adt.test.mjs && node test/smoke.mjs",
     "build:mcpb": "bash scripts/build-mcpb.sh"
   },
   "dependencies": {
@@ -49,6 +49,7 @@
     "abap-sql": "^0.1.0"
   },
   "devDependencies": {
+    "@types/node": "^26.1.2",
     "typescript": "^5.6.0"
   },
   "author": "Daslab (https://daslab.run)",

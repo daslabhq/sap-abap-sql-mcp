@@ -20,6 +20,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { normalize, lint, prepare, MAX_STATEMENT_CHARS, AbapSqlError } from "abap-sql";
+import { configFromEnv, query, MAX_ROWS } from "./adt.js";
 import { z } from "zod";
 
 const INSTRUCTIONS = `ABAP Open SQL on SAP's ADT data-preview console differs from standard SQL in
@@ -37,7 +38,7 @@ five ways. Knowing them up front avoids most of the errors:
 Call abap_sql_prepare on any SELECT before sending it.`;
 
 const server = new McpServer(
-  { name: "sap-abap-sql", version: "0.2.0" },
+  { name: "sap-abap-sql", version: "0.3.0" },
   { instructions: INSTRUCTIONS },
 );
 
@@ -92,6 +93,48 @@ server.registerTool(
       limit: MAX_STATEMENT_CHARS,
       overLimit: normalized.length > MAX_STATEMENT_CHARS,
     });
+  },
+);
+
+server.registerTool(
+  "abap_sql_query",
+  {
+    title: "Run a statement against a connected system",
+    description:
+      "Prepare a SELECT and run it against the SAP system this server is configured for, returning rows. " +
+      "Only available when SAP_URL, SAP_USER and SAP_PASSWORD are set; without them the other tools still work. " +
+      "Read-only: the data-preview console cannot write. " +
+      "Results are capped at 5000 rows by the console, and a result at the cap is reported as truncated rather " +
+      "than returned as if complete.",
+    inputSchema: {
+      ...SQL_INPUT,
+      max_rows: z.number().optional().describe("Rows to request, up to the console's hard cap of 5000."),
+    },
+    annotations: { ...READ_ONLY, openWorldHint: true },
+  },
+  async ({ sql, max_rows }) => {
+    const config = configFromEnv(process.env);
+    if (!config) {
+      return json({
+        ok: false,
+        error:
+          "No system configured. Set SAP_URL, SAP_USER and SAP_PASSWORD in this server's environment. " +
+          "Credentials stay on this machine: nothing is proxied and nothing is stored.",
+      });
+    }
+    let statement: string;
+    try {
+      statement = prepare(sql);
+    } catch (err) {
+      const e = err as AbapSqlError;
+      return json({ ok: false, rule: e.rule ?? "unknown", fix: e.message });
+    }
+    try {
+      const result = await query(config, statement, max_rows ?? 100);
+      return json({ ok: true, statement, ...result });
+    } catch (err) {
+      return json({ ok: false, statement, error: (err as Error).message });
+    }
   },
 );
 

@@ -27,9 +27,29 @@ On-premise systems (ECC, S/4HANA on-prem, private cloud). If you are on S/4HANA 
 
 ## Does it touch my system?
 
-No. There is no connection, no credential, no network call. Every tool is a pure function over a statement you pass in. It cannot read your data because it cannot reach it.
+Only if you tell it to, and only from your own machine.
 
-Use it alongside whatever ADT client you already have.
+Three of the four tools are pure functions over a statement you pass in: no connection, no credential, no network call. They are the default, and they work with no configuration at all.
+
+The fourth, `abap_sql_query`, runs a statement against a system you configure and returns rows. Credentials live in this server's environment on your machine. Nothing is proxied through anyone else and nothing is stored.
+
+```json
+{
+  "mcpServers": {
+    "sap-abap-sql": {
+      "command": "npx",
+      "args": ["-y", "sap-abap-sql-mcp"],
+      "env": {
+        "SAP_URL": "https://your-system:44300",
+        "SAP_USER": "...",
+        "SAP_PASSWORD": "..."
+      }
+    }
+  }
+}
+```
+
+Read-only by construction: the data-preview console cannot write, so there is no write path to misuse.
 
 ## Install
 
@@ -50,6 +70,7 @@ Use it alongside whatever ADT client you already have.
 | --- | --- |
 | `abap_sql_prepare` | Returns the statement to send, or refuses it and names the correction |
 | `abap_sql_explain` | Decodes a statement the console rejected, without rewriting it |
+| `abap_sql_query` | Runs a prepared statement against your configured system and returns rows |
 | `abap_sql_rules` | Lists the ways this dialect differs from standard SQL |
 
 All read-only, no side effects.
@@ -75,9 +96,19 @@ The five rules also arrive in the server's `instructions` on connect, so your cl
 
 **Where the literals are.** A parenthesis inside `'PUMP (SPARE)'` is data, and so is a double space. Both ABAP string forms and the comment form are understood, so a rewrite never changes what a statement asks for. This is the part a regex gets wrong quietly rather than loudly.
 
+## What it will not do for you
+
+Two limits are the console's, not ours, and they shape everything you can ask:
+
+**255 characters per statement**, so anything real has to be split into several statements and joined on your side. No window functions, no CTEs, no running totals.
+
+**5,000 rows, hard.** A result at the cap is reported as `truncated` rather than handed back as if complete, because a client-side total over a silently truncated result is confidently wrong. That failure mode is worse than an error.
+
+If you find yourself stitching four statements together to answer one question, that is the console, and no client fixes it.
+
 ## Scope
 
-This prepares statements. It does not connect, authenticate, read data, or know anything about your landscape.
+This prepares statements and optionally runs them. It does not browse objects, execute ABAP, write anything, or know what your tables mean.
 
 The dialect logic lives in [`abap-sql`](https://github.com/daslabhq/abap-sql) if you would rather call a library than run a server. Tokenizing is [abaplint](https://abaplint.org)'s lexer, which is the one correct ABAP tokenizer in TypeScript.
 

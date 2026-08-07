@@ -24,16 +24,24 @@ const call = async (name, args) => {
 const { tools } = await client.listTools();
 assert.deepEqual(
   tools.map((t) => t.name).sort(),
-  ["abap_sql_explain", "abap_sql_prepare", "abap_sql_rules"],
-  "the three tools register",
+  ["abap_sql_explain", "abap_sql_prepare", "abap_sql_query", "abap_sql_rules"],
+  "the four tools register",
 );
 
-// Every tool claims to be read-only with no side effects. Directory reviews
-// check this, and a client may gate confirmation prompts on it.
+// Every tool is read-only: the data-preview console cannot write.
 for (const tool of tools) {
   assert.equal(tool.annotations?.readOnlyHint, true, `${tool.name} is read-only`);
   assert.equal(tool.annotations?.destructiveHint, false, `${tool.name} is non-destructive`);
 }
+
+// Only the querying tool reaches outside this process, and it says so.
+const reaching = tools.filter((t) => t.annotations?.openWorldHint === true).map((t) => t.name);
+assert.deepEqual(reaching, ["abap_sql_query"], "only abap_sql_query touches a remote system");
+
+// Unconfigured, it declines and explains rather than throwing or hanging.
+const unconfigured = await call("abap_sql_query", { sql: "SELECT vbeln FROM vbak" });
+assert.equal(unconfigured.ok, false);
+assert.match(unconfigured.error, /SAP_URL/);
 
 const fixed = await call("abap_sql_prepare", { sql: "SELECT COUNT(DISTINCT kunnr) FROM vbak" });
 assert.equal(fixed.ok, true);
@@ -52,4 +60,4 @@ assert.ok(rules.rules.length >= 5, "the rule list is populated");
 assert.equal(rules.limit, 255);
 
 await client.close();
-console.log("smoke: ok (3 tools, annotations, prepare, explain, rules)");
+console.log("smoke: ok (4 tools, annotations, prepare, explain, query, rules)");
