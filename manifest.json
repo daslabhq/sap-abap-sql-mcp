@@ -1,0 +1,42 @@
+{
+  "manifest_version": "0.4",
+  "name": "sap-abap-sql",
+  "display_name": "SAP ABAP SQL",
+  "version": "0.1.1",
+  "description": "Checks and fixes ABAP Open SQL for SAP's ADT data-preview console. Connects to nothing.",
+  "long_description": "The ADT data-preview console is the widest read surface an on-premise SAP system exposes over HTTP, and it is strict in ways its error messages do not explain. SUM(netwr), COUNT(DISTINCT kunnr) and (a OR b) each fail with a different-looking grammar error, and all three come from one rule: the parser wants a space on the inside of every parenthesis. This server knows that rule and the handful of others that cost people afternoons, including the hard 255-character statement ceiling.\n\nIt connects to nothing. There is no SAP system behind it, no credential, and no network call. Every tool is a pure function over a statement you pass in, so it is safe to run alongside whichever ADT client you already use.",
+  "author": {
+    "name": "Daslab",
+    "url": "https://daslab.run"
+  },
+  "homepage": "https://github.com/daslabhq/sap-abap-sql-mcp",
+  "documentation": "https://github.com/daslabhq/sap-abap-sql-mcp#readme",
+  "support": "https://github.com/daslabhq/sap-abap-sql-mcp/issues",
+  "license": "MIT",
+  "keywords": ["sap", "abap", "open-sql", "s4hana", "adt", "sql"],
+  "server": {
+    "type": "node",
+    "entry_point": "dist/server.js",
+    "mcp_config": {
+      "command": "node",
+      "args": ["${__dirname}/dist/server.js"]
+    }
+  },
+  "tools": [
+    {
+      "name": "abap_sql_prepare",
+      "description": "Returns the statement to send, or refuses it and names the correction"
+    },
+    {
+      "name": "abap_sql_check",
+      "description": "Reports every dialect problem without rewriting, each with a stable rule id"
+    },
+    {
+      "name": "abap_sql_rules",
+      "description": "Lists the ways this dialect differs from standard SQL"
+    }
+  ],
+  "compatibility": {
+    "runtimes": { "node": ">=18.0.0" }
+  }
+}
