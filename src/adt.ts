@@ -86,7 +86,7 @@ async function openSession(config: AdtConfig): Promise<{ headers: Record<string,
   if (res.status === 401) {
     throw new Error(
       "SAP rejected the credentials (401). A dialog user is forced to change its password, " +
-        "which surfaces here as an inexplicable 401 — the account needs to be type System.",
+        "which surfaces here as an inexplicable 401. The account needs to be type System.",
     );
   }
   const token = res.headers.get("x-csrf-token");
@@ -155,7 +155,7 @@ function warnAbout(
 ): string | undefined {
   if (!truncated) return undefined;
   return (
-    `ROW CAP HIT — exactly ${requested} rows came back, so this result is TRUNCATED and any total ` +
+    `ROW CAP HIT: exactly ${requested} rows came back, so this result is TRUNCATED and any total ` +
     `computed from it is understated. Aggregate in the statement with GROUP BY, narrow the WHERE ` +
     `clause, or page through the key range. Raising the cap only moves it (hard limit ${MAX_ROWS}).`
   );
