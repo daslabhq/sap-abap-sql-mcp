@@ -49,7 +49,7 @@ Use it alongside whatever ADT client you already have.
 | Tool | What it does |
 | --- | --- |
 | `abap_sql_prepare` | Returns the statement to send, or refuses it and names the correction |
-| `abap_sql_check` | Reports every problem without rewriting, each with a stable rule id |
+| `abap_sql_explain` | Decodes a statement the console rejected, without rewriting it |
 | `abap_sql_rules` | Lists the ways this dialect differs from standard SQL |
 
 All read-only, no side effects.
@@ -63,7 +63,7 @@ abap_sql_prepare  SELECT a FROM t LIMIT 10
     "fix": "ABAP Open SQL has no LIMIT. Cap the result with the reader's row limit instead." }
 ```
 
-`abap_sql_rules` is worth calling once at the start of a session. Five rules, read in a second, and most of the guessing stops.
+The five rules also arrive in the server's `instructions` on connect, so your client has them before it writes anything. `abap_sql_rules` is there for when you want them back explicitly.
 
 ## What it knows
 

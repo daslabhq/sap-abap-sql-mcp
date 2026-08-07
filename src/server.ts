@@ -9,6 +9,11 @@
  * console's error messages name the symptom rather than the fix, so the useful
  * thing to hand an agent is the correction, not another connection.
  *
+ * The dialect rules also ride in the server's `instructions`, which every
+ * client receives on initialize. A tool only helps an agent that thinks to
+ * call it, and the agent least likely to think of it is the one about to make
+ * the mistake.
+ *
  * Pair it with whichever ADT client you already use.
  */
 
@@ -17,21 +22,37 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { normalize, lint, prepare, MAX_STATEMENT_CHARS, AbapSqlError } from "abap-sql";
 import { z } from "zod";
 
-const server = new McpServer({ name: "sap-abap-sql", version: "0.1.0" });
+const INSTRUCTIONS = `ABAP Open SQL on SAP's ADT data-preview console differs from standard SQL in
+five ways. Knowing them up front avoids most of the errors:
+
+1. Every parenthesis needs a space on the inside: SUM( netwr ), COUNT( DISTINCT kunnr ),
+   IN ( SELECT ... ), ( a OR b ). COUNT(*) is the one exception. Three different-looking
+   grammar errors all come from this one rule.
+2. There is no LIMIT. Cap results with your reader's row limit instead.
+3. Sorting is ORDER BY x DESCENDING / ASCENDING, never DESC / ASC.
+4. Join fields are qualified with a tilde: p~vbeln, not p.vbeln. A dot ends the statement.
+5. A statement is capped at ${MAX_STATEMENT_CHARS} characters with whitespace collapsed.
+   Wrapping across lines does not help. Anything real has to be split and joined client-side.
+
+Call abap_sql_prepare on any SELECT before sending it.`;
+
+const server = new McpServer(
+  { name: "sap-abap-sql", version: "0.2.0" },
+  { instructions: INSTRUCTIONS },
+);
 
 const READ_ONLY = { readOnlyHint: true, destructiveHint: false, openWorldHint: false } as const;
+const SQL_INPUT = { sql: z.string().describe("A single ABAP Open SQL SELECT statement.") };
 
 server.registerTool(
   "abap_sql_prepare",
   {
-    title: "Prepare an ABAP Open SQL statement",
+    title: "Prepare a statement before sending it",
     description:
-      "Check a SELECT against the ADT data-preview console's dialect and return the statement to send. " +
-      "Fixes what is mechanical (spacing inside parentheses, which the parser requires for aggregates, " +
-      "DISTINCT, subqueries and boolean groups) and refuses what is not, naming the correction. " +
-      "Also enforces the console's 255-character ceiling, measured after normalization. " +
-      "Call this before sending any statement to a tenant.",
-    inputSchema: { sql: z.string().describe("A single ABAP Open SQL SELECT statement.") },
+      "Call this before sending any SELECT to an SAP ADT data-preview console. " +
+      "Returns the statement to send, or refuses it and names what to change. " +
+      "Fixes the mechanical problems itself and enforces the console's 255-character ceiling.",
+    inputSchema: SQL_INPUT,
     annotations: READ_ONLY,
   },
   async ({ sql }) => {
@@ -52,21 +73,20 @@ server.registerTool(
 );
 
 server.registerTool(
-  "abap_sql_check",
+  "abap_sql_explain",
   {
-    title: "Explain what is wrong with an ABAP Open SQL statement",
+    title: "Decode a statement the console rejected",
     description:
-      "Report every dialect problem in a statement without rewriting it, each with a stable rule id and " +
-      "the correction. Use when you want to understand a console error rather than just get past it. " +
-      "Returns the normalized form alongside, so you can see what would be sent.",
-    inputSchema: { sql: z.string().describe("A single ABAP Open SQL SELECT statement.") },
+      "The console rejected a statement and its error does not say why. Reports every dialect " +
+      "problem with the correction and a stable rule id, without rewriting anything. " +
+      "Use abap_sql_prepare instead when you just want a statement that works.",
+    inputSchema: SQL_INPUT,
     annotations: READ_ONLY,
   },
   async ({ sql }) => {
-    const problems = lint(sql);
     const normalized = normalize(sql);
     return json({
-      problems: problems.map((p) => ({ rule: p.rule, fix: p.message, at: p.at })),
+      problems: lint(sql).map((p) => ({ rule: p.rule, fix: p.message, at: p.at })),
       normalized,
       length: normalized.length,
       limit: MAX_STATEMENT_CHARS,
@@ -80,8 +100,8 @@ server.registerTool(
   {
     title: "List the dialect rules",
     description:
-      "The ways ABAP Open SQL on the ADT data-preview console differs from standard SQL, each with the " +
-      "correct form. Read this once before writing statements rather than discovering them one error at a time.",
+      "The five ways this dialect differs from standard SQL, each with the correct form. " +
+      "Also delivered in the server instructions, so you likely have them already.",
     inputSchema: {},
     annotations: READ_ONLY,
   },
@@ -117,7 +137,7 @@ const RULES = [
     rule: "too-long",
     wrong: "a statement over 255 characters",
     right: "Fewer columns, no ORDER BY, short aliases, or aggregate with GROUP BY.",
-    why: "The console accepts 255 characters and rejects 256, measured with whitespace collapsed. Wrapping across lines does not help.",
+    why: "The console accepts 255 characters and rejects 256, whitespace collapsed. Wrapping does not help.",
   },
 ];
 

@@ -24,7 +24,7 @@ const call = async (name, args) => {
 const { tools } = await client.listTools();
 assert.deepEqual(
   tools.map((t) => t.name).sort(),
-  ["abap_sql_check", "abap_sql_prepare", "abap_sql_rules"],
+  ["abap_sql_explain", "abap_sql_prepare", "abap_sql_rules"],
   "the three tools register",
 );
 
@@ -44,7 +44,7 @@ assert.equal(refused.ok, false);
 assert.equal(refused.rule, "no-limit");
 assert.match(refused.fix, /row limit/);
 
-const checked = await call("abap_sql_check", { sql: "SELECT p.vbeln FROM vbap AS p" });
+const checked = await call("abap_sql_explain", { sql: "SELECT p.vbeln FROM vbap AS p" });
 assert.equal(checked.problems[0].rule, "field-separator");
 
 const rules = await call("abap_sql_rules", {});
@@ -52,4 +52,4 @@ assert.ok(rules.rules.length >= 5, "the rule list is populated");
 assert.equal(rules.limit, 255);
 
 await client.close();
-console.log("smoke: ok (3 tools, annotations, prepare, check, rules)");
+console.log("smoke: ok (3 tools, annotations, prepare, explain, rules)");
