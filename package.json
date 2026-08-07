@@ -1,6 +1,6 @@
 {
   "name": "sap-abap-sql-mcp",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Checks and fixes ABAP Open SQL for SAP's ADT data-preview console. Connects to nothing.",
   "keywords": [
     "mcp",
@@ -50,5 +50,6 @@
   "devDependencies": {
     "typescript": "^5.6.0"
   },
-  "author": "Daslab (https://daslab.run)"
+  "author": "Daslab (https://daslab.run)",
+  "mcpName": "run.daslab/sap-abap-sql"
 }

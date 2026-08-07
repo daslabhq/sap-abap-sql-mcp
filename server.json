@@ -1,8 +1,8 @@
 {
-  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-09-29/server.schema.json",
-  "name": "io.github.daslabhq/sap-abap-sql",
-  "description": "Checks and fixes ABAP Open SQL for SAP's ADT data-preview console. Connects to nothing. Knows the paren rule, the 255-character ceiling, and the standard-SQL habits it rejects.",
-  "version": "0.1.0",
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "run.daslab/sap-abap-sql",
+  "description": "Checks and fixes ABAP Open SQL for SAP's ADT data-preview console. Connects to nothing.",
+  "version": "0.1.1",
   "repository": {
     "url": "https://github.com/daslabhq/sap-abap-sql-mcp",
     "source": "github"
@@ -11,7 +11,7 @@
     {
       "registryType": "npm",
       "identifier": "sap-abap-sql-mcp",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "transport": {
         "type": "stdio"
       }
