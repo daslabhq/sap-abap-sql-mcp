@@ -41,14 +41,21 @@ jobs:
       - run: node test/adt.test.mjs
       - run: node test/smoke.mjs
 
-      # --provenance publishes a signed attestation to the public transparency
-      # log tying this tarball to this commit and this workflow. It is free
-      # here and cannot be produced from a laptop, which is the point: it says
-      # where the artifact came from, not merely who uploaded it.
+      # Published via trusted publishing: npm trusts this repo and this
+      # workflow through OIDC, so there is no token here and nothing to
+      # rotate. Configure it once per package under Settings > Trusted
+      # Publisher on npmjs.com.
+      #
+      # NODE_AUTH_TOKEN must stay completely unset. An empty string still
+      # counts as a value, and npm will try to use it rather than falling
+      # back to OIDC, which fails as ENEEDAUTH and looks like a missing
+      # secret rather than a disabled fallback.
+      #
+      # Provenance comes with it: a signed attestation in the public
+      # transparency log tying this tarball to this commit and this workflow,
+      # which a laptop publish cannot produce.
       - name: Publish to npm
         run: npm publish --access public --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Build the .mcpb bundle
         run: bash scripts/build-mcpb.sh

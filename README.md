@@ -121,6 +121,8 @@ Built by [Daslab](https://daslab.run). We connect agents to on-premise ERP syste
 
 `git tag v0.3.0 && git push --tags`. CI checks the tag against `package.json`, runs the tests, publishes to npm with provenance, builds the `.mcpb` bundle and attaches it to a GitHub release.
 
+Publishing uses npm trusted publishing, so there is no token in this repo and nothing to rotate. npm trusts this repository and this workflow through OIDC.
+
 Two steps stay manual because they need credentials CI does not hold: the MCP Registry (`mcp-publisher publish`) and Smithery (`smithery mcp publish`).
 
 ## License
